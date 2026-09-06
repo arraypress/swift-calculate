@@ -29,6 +29,7 @@ public enum CalculateError: Error, LocalizedError, Sendable, Equatable {
     /// Nesting deeper than the parser will follow.
     case tooDeep
 
+    /// A one-line reason, for a CLI or a log.
     public var errorDescription: String? {
         switch self {
         case .unexpectedCharacter(let character, let index):
