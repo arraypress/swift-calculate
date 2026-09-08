@@ -193,3 +193,54 @@ final class CalculateTests: XCTestCase {
         XCTAssertEqual(Percentage.change(from: -100, to: -50), 50)
     }
 }
+
+// MARK: - Percentage phrases
+
+final class PercentageParsingTests: XCTestCase {
+
+    func testPercentOf() {
+        XCTAssertEqual(Percentage.evaluate("15% of 200"), 30)
+        XCTAssertEqual(Percentage.evaluate("15 % of 200"), 30)
+        XCTAssertEqual(Percentage.evaluate("15 percent of 200"), 30)
+        XCTAssertEqual(Percentage.evaluate("20% of 1,000"), 200)
+    }
+
+    func testWhatPercent() {
+        XCTAssertEqual(Percentage.evaluate("30 is what percent of 200"), 15)
+        XCTAssertEqual(Percentage.evaluate("30 what % of 200"), 15)
+    }
+
+    func testAddingAndDiscounting() {
+        XCTAssertEqual(Percentage.evaluate("200 + 15%"), 230)
+        XCTAssertEqual(Percentage.evaluate("200 plus 15%"), 230)
+        XCTAssertEqual(Percentage.evaluate("200 - 15%"), 170)
+        XCTAssertEqual(Percentage.evaluate("200 minus 15%"), 170)
+        XCTAssertEqual(Percentage.evaluate("200 less 15%"), 170)
+    }
+
+    func testChange() throws {
+        let rise = try XCTUnwrap(Percentage.evaluate("from 80 to 100"))
+        XCTAssertEqual(rise, 25, accuracy: 0.0001)
+        let fall = try XCTUnwrap(Percentage.evaluate("from 100 to 80"))
+        XCTAssertEqual(fall, -20, accuracy: 0.0001)
+    }
+
+    func testTheLongerQuestionWinsOverTheShorter() {
+        // "what % of" ends in "% of". Matched the other way round, this
+        // question would answer 30 rather than 15.
+        XCTAssertEqual(Percentage.evaluate("30 is what percent of 200"), 15)
+    }
+
+    func testNotAPercentageQuestion() {
+        XCTAssertNil(Percentage.evaluate("12 + 12"))
+        XCTAssertNil(Percentage.evaluate("hello"))
+        XCTAssertNil(Percentage.evaluate("100"))
+        XCTAssertNil(Percentage.evaluate("10 % 3"))       // modulo, not percent
+        XCTAssertNil(Percentage.evaluate("50% off everything"))
+    }
+
+    func testDivisionByZeroIsStillNil() {
+        XCTAssertNil(Percentage.evaluate("30 is what percent of 0"))
+        XCTAssertNil(Percentage.evaluate("from 0 to 100"))
+    }
+}

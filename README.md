@@ -33,6 +33,24 @@ so a pathological `((((…` is refused rather than exhausting the stack.
 That matters most where a crash is least acceptable: a keyboard extension
 evaluating as you type.
 
+## Percentages, as people write them
+
+```swift
+Percentage.evaluate("15% of 200")               // 30
+Percentage.evaluate("30 is what percent of 200")// 15
+Percentage.evaluate("200 + 15%")                // 230
+Percentage.evaluate("200 less 15%")             // 170
+Percentage.evaluate("from 80 to 100")           // 25, the change
+```
+
+Separate from `evaluate(_:)` on purpose. `%` there is **modulo**, as it is in
+every programming language, so `10 % 3` is 1 and not a percentage question.
+`15% of 200` is not an arithmetic expression at all — it is English, and it gets
+an English parser.
+
+Returns nil rather than throwing, because it is asked speculatively of text that
+is usually not a percentage question at all.
+
 ## Expressions
 
 ```swift
