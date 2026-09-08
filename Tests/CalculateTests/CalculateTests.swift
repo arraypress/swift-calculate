@@ -244,3 +244,28 @@ final class PercentageParsingTests: XCTestCase {
         XCTAssertNil(Percentage.evaluate("from 0 to 100"))
     }
 }
+
+
+// MARK: - Found by typing at it
+
+final class SweepTests: XCTestCase {
+
+    func testHexIsSixteenNotZero() throws {
+        // "0x10" used to answer 0: the x was a multiply.
+        XCTAssertEqual(try Calculate.evaluate("0x10"), 16)
+        XCTAssertEqual(try Calculate.evaluate("0xff + 1"), 256)
+        XCTAssertEqual(try Calculate.evaluate("0 x 10"), 0)   // still a multiply when spaced
+    }
+
+    func testSpacedThousands() throws {
+        XCTAssertEqual(try Calculate.evaluate("1 000 000"), 1_000_000)
+        XCTAssertEqual(try Calculate.evaluate("12 345.5 + 1"), 12_346.5)
+        XCTAssertThrowsError(try Calculate.evaluate("1 2"))
+        XCTAssertThrowsError(try Calculate.evaluate("1 0000"))
+    }
+
+    func testModWord() throws {
+        XCTAssertEqual(try Calculate.evaluate("7 mod 3"), 1)
+        XCTAssertEqual(try Calculate.evaluate("7 MOD 3"), 1)
+    }
+}

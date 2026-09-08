@@ -44,6 +44,23 @@ enum Lexer {
                 index += 1
                 continue
             }
+            // "0x10" is sixteen. Without this it was zero: the x was read as
+            // a multiply and the answer came back silently wrong, which is the
+            // one thing this library exists to never do.
+            if character == "0", index + 2 < characters.count,
+               "xX".contains(characters[index + 1]), characters[index + 2].isHexDigit {
+                var hex = ""
+                index += 2
+                while index < characters.count, characters[index].isHexDigit {
+                    hex.append(characters[index])
+                    index += 1
+                }
+                guard let value = UInt64(hex, radix: 16) else {
+                    throw CalculateError.unexpectedToken("0x" + hex, at: start)
+                }
+                tokens.append(.init(token: .number(Double(value)), index: start))
+                continue
+            }
             if character.isNumber || character == "." {
                 var literal = ""
                 while index < characters.count,
@@ -52,10 +69,39 @@ enum Lexer {
                     if characters[index] != "," { literal.append(characters[index]) }
                     index += 1
                 }
+                // "1 000 000": a space then exactly three digits is a thousands
+                // separator — the French and Swiss convention, and how plenty
+                // of people type a big number anywhere. Exactly three, and no
+                // fourth digit after, so "1 2" stays two numbers and an error.
+                while !literal.contains("."),
+                      index + 3 < characters.count + 0, characters[index] == " ",
+                      characters[index + 1].isNumber, characters[index + 2].isNumber, characters[index + 3].isNumber,
+                      !(index + 4 < characters.count && characters[index + 4].isNumber) {
+                    literal += String(characters[(index + 1)...(index + 3)])
+                    index += 4
+                }
+                if index < characters.count, characters[index] == ".", literal.allSatisfy(\.isNumber),
+                   index + 1 < characters.count, characters[index + 1].isNumber {
+                    // The decimal part after spaced thousands: "12 345.5".
+                    literal.append(".")
+                    index += 1
+                    while index < characters.count, characters[index].isNumber {
+                        literal.append(characters[index])
+                        index += 1
+                    }
+                }
                 guard let value = Double(literal) else {
                     throw CalculateError.unexpectedToken(literal, at: start)
                 }
                 tokens.append(.init(token: .number(value), index: start))
+                continue
+            }
+            // The word, for people who write it: "7 mod 3".
+            if index + 2 < characters.count,
+               String(characters[index...(index + 2)]).lowercased() == "mod",
+               !(index + 3 < characters.count && characters[index + 3].isLetter) {
+                tokens.append(.init(token: .symbol(.modulo), index: start))
+                index += 3
                 continue
             }
             if character == "(" || character == "[" {
