@@ -28,6 +28,10 @@ public enum CalculateError: Error, LocalizedError, Sendable, Equatable {
     case notFinite
     /// Nesting deeper than the parser will follow.
     case tooDeep
+    /// A rounding step that is zero, negative or not finite.
+    case badStep(Double)
+    /// A source range whose two bounds are the same point.
+    case emptyRange
 
     /// A one-line reason, for a CLI or a log.
     public var errorDescription: String? {
@@ -48,6 +52,10 @@ public enum CalculateError: Error, LocalizedError, Sendable, Equatable {
             return "the result is not a finite number"
         case .tooDeep:
             return "the expression nests too deeply"
+        case .badStep(let step):
+            return "not a rounding step: \(step) — it must be a positive number"
+        case .emptyRange:
+            return "the source range has no width, so there is nothing to map from"
         }
     }
 }

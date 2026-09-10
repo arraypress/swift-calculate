@@ -101,9 +101,38 @@ Percentage.adding(15, to: 200)       // 230
 A total of zero returns `nil` rather than an infinity: every increase from
 nothing is infinite, and a number there would be a lie.
 
+## Whole numbers in words, and in step
+
+```swift
+Numbers.ordinal(22)                       // "22nd"
+Numbers.ordinal(112)                      // "112th" — the teens rule
+Numbers.spelledOut(1001)                  // "one thousand and one"
+Numbers.spelledOut(1001, style: .american) // "one thousand one"
+Numbers.spelledOut(12.5)                  // "twelve point five"
+try Numbers.round(1.06, toNearest: 0.1)   // 1.1 — not 1.1000000000000001
+try Numbers.round(2.5, toNearest: 1)      // 3; .toNearestOrEven gives 2
+try Numbers.roundUp(1201, toNearest: 100) // 1300
+Numbers.clamp(15, to: 0...10)             // 10
+try Numbers.map(0.25, from: (0, 1), to: (100, 0))   // 75 — a countdown
+Numbers.isOdd(-3)                         // true
+```
+
+English only, and said so: ordinals and number words inflect by gender and case in
+most other languages, and a table for one pretending to be general would be worse than
+none. Spelling covers the whole of `Int` — nine quintillion — with "and" after the
+hundreds in British style and without it in American. Decimals are read digit by
+digit after the point, the way a person says them.
+
+Rounding to a step runs in `Decimal`, because `round(1.06 / 0.1) * 0.1` in binary is
+`1.1000000000000001` and removing that was the point. Halfway values go away from zero
+unless banker's rounding is asked for; `roundUp` and `roundDown` go towards the
+infinities, so `-1.2` down to the half is `-1.5`. A step of zero is refused. `map` takes
+pairs rather than ranges so a target can run backwards, and refuses a source with no
+width rather than answering infinity.
+
 ## Tested
 
-22 tests, all offline and instant. Three are named after the `NSExpression`
+68 tests, all offline and instant. Three are named after the `NSExpression`
 failures above and exist purely to keep them fixed.
 
 ## Requirements
