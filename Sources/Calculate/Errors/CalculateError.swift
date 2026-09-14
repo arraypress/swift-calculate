@@ -33,6 +33,15 @@ public enum CalculateError: Error, LocalizedError, Sendable, Equatable {
     /// A source range whose two bounds are the same point.
     case emptyRange
 
+    /// A digit that the stated base does not have.
+    case badDigit(String, base: Int)
+
+    /// A base outside 2...36, which has no digit alphabet.
+    case baseOutOfRange(Int)
+
+    /// A number too large to hold in 64 bits.
+    case valueTooLarge(String)
+
     /// A one-line reason, for a CLI or a log.
     public var errorDescription: String? {
         switch self {
@@ -40,6 +49,12 @@ public enum CalculateError: Error, LocalizedError, Sendable, Equatable {
             return "unexpected '\(character)' at position \(index + 1)"
         case .unexpectedEnd:
             return "the expression ends unexpectedly"
+        case .badDigit(let text, let base):
+            return "\"\(text)\" is not a number in base \(base)"
+        case .baseOutOfRange(let base):
+            return "base \(base) has no digits to write it with — bases run from 2 to 36"
+        case .valueTooLarge(let text):
+            return "\"\(text)\" is too large to hold in 64 bits"
         case .unexpectedToken(let token, let index):
             return "unexpected '\(token)' at position \(index + 1)"
         case .unbalancedParentheses:
